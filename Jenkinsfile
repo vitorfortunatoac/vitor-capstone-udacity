@@ -11,9 +11,9 @@ pipeline {
             steps {
                 script {
                     docker.image('hadolint/hadolint:latest-debian').inside() {
-                            sh 'hadolint Dockerfile | tee -a hadolint.txt'
-                            sh 'tidy -q -e app/*.html'
+                            sh 'hadolint Dockerfile | tee -a hadolint.txt'                            
                     }
+                    sh 'tidy -q -e app/*.html'
                 }
             }
         }
