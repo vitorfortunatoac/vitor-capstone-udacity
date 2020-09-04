@@ -10,9 +10,7 @@ pipeline {
         stage('Lint Dockerfile') {
             steps {
                 script {
-                    docker.image('hadolint/hadolint:latest-debian').inside() {
-                            sh 'hadolint Dockerfile | tee -a hadolint.txt'                            
-                    }
+                    sh '''docker run --rm -i hadolint/hadolint < Dockerfile'''
                     sh 'tidy -q -e app/*.html'
                 }
             }
