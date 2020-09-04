@@ -35,10 +35,9 @@ pipeline {
             }
         }
 
-        stage('Update deployment') {
+        stage('Get pods') {
             steps {
                 withAWS(credentials: '249345434414', region: eksRegion) {
-                    sh "kubectl set image deployment.apps/vitor-final-project vitor-final-project=vitorfortunatoac/vitor-udacity-docker-capstonedocker:${BUILD_NUMBER}"
                     sh "kubectl get pods"
                     sh "kubectl get svc"
                 }
