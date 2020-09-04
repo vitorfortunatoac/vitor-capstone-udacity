@@ -7,7 +7,7 @@ pipeline {
     }
     agent any
     stages {
-          stage('Lint Dockerfile') {
+        stage('Lint Dockerfile') {
             steps {
                 script {
                     docker.image('hadolint/hadolint:latest-debian').inside() {
@@ -27,4 +27,16 @@ pipeline {
             }
         }
     }
+        stage('Docker build') {
+            steps {
+                script {
+                    dockerImage = docker.build('${dockerHub}/${dockerImage}:${dockerVersion}')
+                    docker.withRegistry('', 'docker-hub-creds') {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+    }
+    
 }
