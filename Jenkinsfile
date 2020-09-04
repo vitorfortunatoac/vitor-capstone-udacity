@@ -27,25 +27,19 @@ pipeline {
         //     }
         // }
         //stage('Docker build and Push') {
-        //    steps {
-         //       script {
-          //          dockerImage = docker.build('${dockerHub}/${dockerImage}')
-           //         docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credential') {
-             //           dockerImage.push()
-             //       }
-              //  }
-           // }
-        //}
+            steps {
+                script {
+                    dockerImage = docker.build('${dockerHub}/${dockerImage}')
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credential') {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
 
         stage('Apply deployment') {
             steps {  
                 withAWS(credentials: '249345434414', region: eksRegion) {
-                    sh 'aws sts get-caller-identity'
-                    //sh 'aws eks --region eu-central-1 update-kubeconfig --name vitor-final-project-cluster'
-                    //sh 'sudo kubectl apply -f k8s/aws-auth-cm.yaml'
-                    sh 'aws sts get-caller-identity'
-                    sh 'kubectl describe configmap -n kube-system aws-auth'
-                    sh 'kubectl get svc'
                     sh 'kubectl apply -f k8s/kubernets.yml'
                 }
             }
