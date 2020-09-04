@@ -38,10 +38,7 @@ pipeline {
         //}
 
         stage('Apply deployment') {
-            steps {
-                sh 'aws sts get-caller-identity'    
-                sh 'cd k8s'          
-                sh 'cd ..'  
+            steps {  
                 withAWS(credentials: '249345434414', region: eksRegion) {
                     sh 'aws sts get-caller-identity'
                     dir('k8s') {
