@@ -29,7 +29,7 @@ pipeline {
         stage('Docker build') {
             steps {
                 script {
-                    dockerImage = docker.build('${dockerHub}/${dockerImage}:${dockerVersion}')
+                    dockerImage = docker.build('${dockerHub}/${dockerImage}')
                     docker.withRegistry('', 'docker-hub-creds') {
                         dockerImage.push()
                     }
