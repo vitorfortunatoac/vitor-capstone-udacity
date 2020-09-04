@@ -41,11 +41,11 @@ pipeline {
             steps {
                 dir('k8s') {
                     withAWS(credentials: 'vitorfortunatoac', region: eksRegion) {
+                        sh 'sudo kubectl apply -f aws-auth-cm.yaml'
                         sh 'aws eks --region eu-central-1 update-kubeconfig --name vitor-final-project-cluster'
                         sh 'aws sts get-caller-identity'
                         sh 'kubectl describe configmap -n kube-system aws-auth'
                         sh 'kubectl get svc'
-                        sh 'sudo kubectl apply -f aws-auth-cm.yaml'
                         sh 'kubectl apply -f kubernets.yml'
                     }
                 }
