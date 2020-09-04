@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: uc-capstone
+spec:
+  type: LoadBalancer
+  selector:
+    app: vitor-final-project
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vitor-final-project-deploy
+spec:
+  selector:
+    matchLabels:
+      app: vitor-final-project
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: uc-capstone
+    spec:
+      containers:
+      - name: vitor-final-project-pod
+        image: vitorfortunatoac/vitor-udacity-docker-capstonedocker
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          protocol: TCP
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  minReadySeconds: 10

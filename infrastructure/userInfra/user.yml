@@ -1,0 +1,29 @@
+Description: Captsone User infrastructure
+
+Resources:
+
+    Group:
+      Type: AWS::IAM::Group
+      Properties:
+        GroupName: udacity-final-project-group
+        Path: /
+        Policies:
+          - PolicyName: String
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement: 
+                - Effect: "Allow"
+                  Action: 
+                    - "ec2:*"
+                    - "cloudformation:*"
+                    - "secretmanager:*"
+                  Resource: "*"
+  
+    FinalProjectUser:
+      Type: AWS::IAM::User
+      Properties: 
+        Groups:
+          - udacity-final-project-group
+        LoginProfile:
+          Password: Udacity@1234
+        UserName: udacity-final-project-user

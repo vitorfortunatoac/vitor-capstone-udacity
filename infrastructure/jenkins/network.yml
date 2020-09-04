@@ -1,0 +1,208 @@
+Description: Vitor's final project network
+
+Parameters:
+
+    EnvironmentName:
+        Description: An environment name that will be prefixed to resource names
+        Type: String
+
+    VpcCIDR:
+      Description: CIRD IP range for the VPC (default - 10.0.0.0/16)
+      Type: String
+      Default: 10.0.0.0/16
+
+    PublicSubnet1CIDR:
+      Description: CIRD IP range for the public subnet (Availability Zone 1) (default - 10.0.0.0/24)
+      Type: String
+      Default: 10.0.0.0/24
+
+    PublicSubnet2CIDR:
+      Description: CIRD IP range for the public subnet (Availability Zone 1) (default - 10.0.0.0/24)
+      Type: String
+      Default: 10.0.1.0/24
+
+    KeyPairJenkins:
+      Description: KeyPair name to access Jenkins host via SSH
+      Type: "AWS::EC2::KeyPair::KeyName"
+      Default: vitor-key            
+
+    WorkerInstanceType:
+        Description: EC2 instance type for the worker node instances.
+        Type: String
+        Default: t2.small
+
+Resources:
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-VPCID"
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: ProjectName
+          Value: !Sub ${EnvironmentName}-GATEWAY
+
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-SUBNET-1
+        - Key: Network
+          Value: Public
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-SUBNET-2
+        - Key: Network
+          Value: Public          
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-ROUTING-TABLE
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2      
+
+  SecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+          GroupDescription: Cluster security group
+          VpcId: !Ref VPC
+
+  ClusterRole:
+      Type: AWS::IAM::Role
+      Properties:
+          AssumeRolePolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+              -   Effect: "Allow"
+                  Principal:
+                      Service:
+                      -   "eks.amazonaws.com" 
+                  Action: 
+                  -   "sts:AssumeRole"
+          Tags:
+          -   Key: Name
+              Value: !Sub "${EnvironmentName}-Role"
+          Path: "/"
+          ManagedPolicyArns: [
+              "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
+              "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+          ]  
+
+
+  WorkerRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+          AssumeRolePolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+              -   Effect: Allow
+                  Principal:
+                      Service:
+                      -   ec2.amazonaws.com
+                  Action:
+                  -   "sts:AssumeRole"
+          ManagedPolicyArns:
+          -   "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+          -   "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+          -   "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+
+  CapCluster:
+      Type: AWS::EKS::Cluster
+      Properties:
+          Name: !Sub '${EnvironmentName}-cluster'
+          Version: '1.14'
+          RoleArn: !GetAtt ClusterRole.Arn
+          ResourcesVpcConfig:
+              SecurityGroupIds:
+              -   !Ref SecurityGroup
+              SubnetIds:
+              -   !Ref PublicSubnet1
+              -   !Ref PublicSubnet2
+
+  NodeGroup:
+      Type: 'AWS::EKS::Nodegroup'
+      DependsOn: CapCluster
+      Properties:
+          ClusterName: !Sub '${EnvironmentName}-cluster'
+          NodeRole: !GetAtt WorkerRole.Arn
+          InstanceTypes:
+          -   !Ref WorkerInstanceType
+          RemoteAccess:
+              Ec2SshKey: !Ref KeyPairJenkins
+          Subnets:
+          -   !Ref PublicSubnet1
+          -   !Ref PublicSubnet2
+          ScalingConfig:
+              DesiredSize: 1
+              MinSize: 1
+              MaxSize: 1
+
+
+Outputs:
+  VPCID:
+    Description: VPC ID
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${EnvironmentName}-VPCID
+
+  PublicSubnet1:
+    Description: Subnet-1 ID
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: !Sub ${EnvironmentName}-SUBNET-1
+
+  PublicSubnet2:
+    Description: Subnet-2 ID
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: !Sub ${EnvironmentName}-SUBNET-2
+
