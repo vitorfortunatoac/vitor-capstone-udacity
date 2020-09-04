@@ -40,10 +40,9 @@ pipeline {
         stage('Apply deployment') {
             steps {
                 dir('k8s') {
-                    withAWS(credentials: 'vitorfortunatoac', region: eksRegion) {
-                        sh "echo $USER"
-                        sh 'sudo kubectl apply -f aws-auth-cm.yaml'
+                    withAWS(credentials: '249345434414', region: eksRegion) {
                         sh 'aws eks --region eu-central-1 update-kubeconfig --name vitor-final-project-cluster'
+                        sh 'sudo kubectl apply -f aws-auth-cm.yaml'
                         sh 'aws sts get-caller-identity'
                         sh 'kubectl describe configmap -n kube-system aws-auth'
                         sh 'kubectl get svc'
