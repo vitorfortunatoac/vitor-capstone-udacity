@@ -26,7 +26,7 @@ pipeline {
         //         }
         //     }
         // }
-        stage('Docker build') {
+        stage('Docker build and Push') {
             steps {
                 script {
                     dockerImage = docker.build('${dockerHub}/${dockerImage}')
@@ -37,14 +37,14 @@ pipeline {
             }
         }
 
-        stage('K8S Deploy')  {
+        stage('Apply deployment') {
             steps {
-                withAWS(credentials: 'aws-credentials', region: eksRegion) {
-                    //sh 'aws eks --region=${eksRegion} update-kubeconfig --name ${eksClusterName}'
-                    sh 'kubectl apply -f k8s/kubernets.yml'
+                dir('k8s') {
+                    withAWS(credentials: 'aws-credential', region: 'eu-central-1') {
+                            sh 'kubectl apply -f kubernets.yaml'
+                    }
                 }
             }
         }
-    }
-    
+    }    
 }
