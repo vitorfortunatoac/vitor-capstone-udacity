@@ -37,7 +37,7 @@ pipeline {
         stage('Update deployment') {
             steps {
                 withAWS(credentials: '249345434414', region: eksRegion) {
-                    sh "kubectl set image deployment.apps/vitor-final-project ${dockerHub}/${dockerImage}:${BUILD_NUMBER}"
+                    sh "kubectl set image deployment.apps/vitor-final-project vitorfortunatoac/vitor-udacity-docker-capstonedocker:${BUILD_NUMBER}"
                 }
             }
         }
