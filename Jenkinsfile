@@ -40,7 +40,9 @@ pipeline {
         stage('Apply deployment') {
             steps {
                 dir('k8s') {
-                    sh 'kubectl apply -f kubernets.yaml'
+                    withAWS(credentials: 'vitorfortunatoac', region: 'eu-central-1') {
+                        sh 'kubectl apply -f kubernets.yml'
+                    }
                 }
             }
         }
