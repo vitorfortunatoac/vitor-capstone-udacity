@@ -53,6 +53,9 @@ Resources:
           sudo systemctl start jenkins
           sudo systemctl enable jenkins
           sudo systemctl status jenkins
+          sudo apt-get update
+          sudo apt-get install docker-ce docker-ce-cli containerd.io
+          sudo chmod 666 /var/run/docker.sock
       SecurityGroupIds:
         - Ref: SecurityGroup
       SubnetId:
