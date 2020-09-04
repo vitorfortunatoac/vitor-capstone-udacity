@@ -39,7 +39,7 @@ pipeline {
 
         stage('Apply deployment') {
             steps {
-                dir('k8s') 
+                dir('k8s') {
                     sh 'ls'
                     sh 'kubectl apply -f kubernets.yml'
                 }
