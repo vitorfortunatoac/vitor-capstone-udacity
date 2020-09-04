@@ -1,7 +1,7 @@
 pipeline {
     environment {
         eksClusterName = 'vitor-final-project-cluster'
-        eksRegion = 'us-central-1'
+        eksRegion = 'eu-central-1'
         dockerHub = 'vitorfortunatoac'
         dockerImage = 'vitor-udacity-docker-capstonedocker'
     }
