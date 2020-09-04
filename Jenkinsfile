@@ -41,8 +41,8 @@ pipeline {
             steps {  
                 withAWS(credentials: '249345434414', region: eksRegion) {
                     sh 'aws sts get-caller-identity'
-                    sh 'aws eks --region eu-central-1 update-kubeconfig --name vitor-final-project-cluster'
-                    sh 'sudo kubectl apply -f k8s/aws-auth-cm.yaml'
+                    //sh 'aws eks --region eu-central-1 update-kubeconfig --name vitor-final-project-cluster'
+                    //sh 'sudo kubectl apply -f k8s/aws-auth-cm.yaml'
                     sh 'aws sts get-caller-identity'
                     sh 'kubectl describe configmap -n kube-system aws-auth'
                     sh 'kubectl get svc'
