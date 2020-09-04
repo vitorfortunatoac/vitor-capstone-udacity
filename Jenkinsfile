@@ -7,27 +7,22 @@ pipeline {
     }
     agent any
     stages {
-        stage('Lint') {
-            steps {
-                sh 'tidy -q -e **/*.html'
-                sh '''docker run --rm -i hadolint/hadolint < Dockerfile'''
-            }
-        }
-        stage('Docker build') {
+          stage('Lint Dockerfile') {
             steps {
                 script {
-                    dockerImage = docker.build('${dockerHub}/${dockerImage}')
-                    docker.withRegistry('', 'docker-hub-creds') {
-                        dockerImage.push()
+                    docker.image('hadolint/hadolint:latest-debian').inside() {
+                            sh 'hadolint Dockerfile | tee -a hadolint.txt'
+                            sh '''
+                                lintErrors=$(stat --printf="%s"  hadolint.txt)
+                                if [ "$lintErrors" -gt "0" ]; then
+                                    echo "Errors linting Dockerfile"
+                                    cat hadolint.txt
+                                    exit 1
+                                else
+                                    echo "Done linting Dockerfile"
+                                fi
+                            '''
                     }
-                }
-            }
-        }
-        stage('K8S Deploy')  {
-            steps {
-                withAWS(credentials: 'aws-credentials', region: eksRegion) {
-                    sh 'aws eks --region=${eksRegion} update-kubeconfig --name ${eksClusterName}'
-                    sh 'kubectl apply -f k8s/uc-capstone-deployment.yml'
                 }
             }
         }
