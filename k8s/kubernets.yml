@@ -23,6 +23,7 @@ spec:
         app: capstone-vitor
     spec:
       terminationGracePeriodSeconds: 60
+      serviceAccountName: jenkins
       containers:
       - name: capstone-vitor
         image: vitorfortunatoac/vitor-udacity-docker-capstonedocker

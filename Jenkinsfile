@@ -41,7 +41,7 @@ pipeline {
             steps {
                 dir('k8s') {
                     withAWS(credentials: 'aws-credentials', region: 'eu-central-1') {
-                       // sh 'kubectl apply -f kubernets.yaml'
+                        sh 'kubectl apply -f kubernets.yaml'
                     }
                 }
             }
